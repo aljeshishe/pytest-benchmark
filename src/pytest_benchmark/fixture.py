@@ -236,11 +236,9 @@ class BenchmarkFixture:
 
         def make_arguments(args=args, kwargs=kwargs):
             if setup:
-                maybe_args = setup()
-                if maybe_args:
-                    if has_args:
-                        raise TypeError("Can't use `args` or `kwargs` if `setup` returns the arguments.")
-                    args, kwargs = maybe_args
+                # GRACHEV we need both setup and kwargs
+                setup_kwargs = setup()
+                kwargs.update(setup_kwargs)
             return args, kwargs
 
         if self.disabled:
@@ -262,14 +260,15 @@ class BenchmarkFixture:
             args, kwargs = make_arguments()
 
             runner = self._make_runner(target, args, kwargs)
-            if loops_range:
-                duration = runner(loops_range)
-            else:
-                duration, result = runner(loops_range)
-            stats.update(duration)
-
-            if teardown is not None:
-                teardown(*args, **kwargs)
+            try:
+                if loops_range:
+                    duration = runner(loops_range)
+                else:
+                    duration, result = runner(loops_range)
+                stats.update(duration)
+            finally:
+                if teardown is not None:
+                    teardown(*args, **kwargs)
 
         if loops_range:
             # if it has been looped then we don't have the result, we need to do 1 extra run for it

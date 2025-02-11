@@ -63,12 +63,13 @@ class BenchmarkSession:
         self.skip = config.getoption('benchmark_skip')
         self.disabled = config.getoption('benchmark_disable') and not config.getoption('benchmark_enable')
 
-        if config.getoption('dist', 'no') != 'no' and not self.skip and not self.disabled:
-            self.logger.warning(
-                'Benchmarks are automatically disabled because xdist plugin is active.'
-                'Benchmarks cannot be performed reliably in a parallelized environment.',
-            )
-            self.disabled = True
+        # GRACHEV we need benchmark to work with xdist
+        # if config.getoption('dist', 'no') != 'no' and not self.skip and not self.disabled:
+        #     self.logger.warning(
+        #         'Benchmarks are automatically disabled because xdist plugin is active.'
+        #         'Benchmarks cannot be performed reliably in a parallelized environment.',
+        #     )
+        #     self.disabled = True
         if hasattr(config, 'slaveinput'):
             self.disabled = True
         if not statistics and not self.disabled:

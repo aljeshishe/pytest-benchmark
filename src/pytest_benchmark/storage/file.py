@@ -37,18 +37,28 @@ class FileStorage:
 
     @property
     def _next_num(self):
-        files = self.query('[0-9][0-9][0-9][0-9]_*')
-        files.sort(reverse=True)
-        if not files:
-            return '0001'
-        for f in files:
-            try:
-                return '%04i' % (int(str(f.name).split('_')[0]) + 1)
-            except ValueError:
-                raise
+        # GRACHEV: when running with xdist, file prefix must be unique and genereated independently
+        import string
+        import time
+        import random
+        symbols: str = string.ascii_uppercase + string.digits
+        count = 6
+        return ''.join(random.Random(x=time.time()).choice(symbols) for _ in range(count)) 
 
+    # @property
+    # def _next_num(self):
+    #     files = self.query('[0-9][0-9][0-9][0-9]_*')
+    #     files.sort(reverse=True)
+    #     if not files:
+    #         return '0001'
+    #     for f in files:
+    #         try:
+    #             return '%04i' % (int(str(f.name).split('_')[0]) + 1)
+    #         except ValueError:
+    #             raise
+    
     def save(self, output_json, save):
-        output_file = self.get(f'{self._next_num}_{save}.json')
+        output_file = self.get(f'{save}_{self._next_num}.json')
         assert not output_file.exists()
         with output_file.open('wb') as fh:
             fh.write(safe_dumps(output_json, ensure_ascii=True, indent=4).encode())
